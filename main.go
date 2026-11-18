@@ -11,7 +11,9 @@ type apiConfig struct {
 }
 
 func main() {
-	apiCfg := apiConfig{}
+	apiCfg := apiConfig{
+		fileserverHits: atomic.Int32{},
+	}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
