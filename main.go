@@ -1,17 +1,35 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sync/atomic"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/priyanshoon/chirpy/internal/database"
 )
 
 type apiConfig struct {
+	db             *database.Queries
 	fileserverHits atomic.Int32
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Printf("error loading .env file: %s", err)
+	}
+
+	dbURL := os.Getenv("DB_URL")
+	db, err := sql.Open("postgres", dbURL)
+	dbQueries := database.New(db)
+
 	apiCfg := apiConfig{
+		db:             dbQueries,
 		fileserverHits: atomic.Int32{},
 	}
 	mux := http.NewServeMux()
