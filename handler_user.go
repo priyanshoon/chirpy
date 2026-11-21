@@ -36,12 +36,12 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, "cannot create a hash password", err)
 	}
 
-	sendParams := database.CreateUserParams{
+	sendUserParams := database.CreateUserParams{
 		Email:          params.Email,
 		HashedPassword: hashPassword,
 	}
 
-	user, err := cfg.db.CreateUser(r.Context(), sendParams)
+	user, err := cfg.db.CreateUser(r.Context(), sendUserParams)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "something went wrong", err)
 		return
