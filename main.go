@@ -17,6 +17,7 @@ type apiConfig struct {
 	db             *database.Queries
 	platform       string
 	fileserverHits atomic.Int32
+	jwtSecret      string
 }
 
 func main() {
@@ -30,6 +31,11 @@ func main() {
 		log.Fatal("PLATFORM must be set")
 	}
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET must be set")
+	}
+
 	dbURL := os.Getenv("DB_URL")
 	db, err := sql.Open("postgres", dbURL)
 	dbQueries := database.New(db)
@@ -38,6 +44,7 @@ func main() {
 		db:             dbQueries,
 		platform:       platform,
 		fileserverHits: atomic.Int32{},
+		jwtSecret:      jwtSecret,
 	}
 	mux := http.NewServeMux()
 

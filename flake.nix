@@ -52,6 +52,8 @@
           packages = [
             pkgs.goose
             pkgs.sqlc
+            pkgs.openssl
+            pkgs.httpyac
             self'.packages.chirpy
           ];
         };
