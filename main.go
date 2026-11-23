@@ -48,15 +48,24 @@ func main() {
 	}
 	mux := http.NewServeMux()
 
+	// health of server
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
+
+	// user related shit
 	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUser)
+	mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUser)
+
+	// chirps related shit
 	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)
 	mux.HandleFunc("GET /api/chirps", apiCfg.handlerGetAllChirps)
+	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirpByID)
+
+	// authentication handlers shit
 	mux.HandleFunc("POST /api/login", apiCfg.handlerLoginUser)
 	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefersh)
 	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
-	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handlerGetChirpByID)
 
+	// this 2 should stay in for local test and development
 	mux.HandleFunc("GET /admin/metrics", apiCfg.hitHandler)
 	mux.HandleFunc("POST /admin/reset", apiCfg.resetHandler)
 
