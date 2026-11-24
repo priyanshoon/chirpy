@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -71,6 +72,7 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 
 func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
 	auther_id := r.URL.Query().Get("author_id")
+	sortQuery := r.URL.Query().Get("sort")
 	if auther_id != "" {
 		userId, err := uuid.Parse(auther_id)
 		if err != nil {
@@ -95,6 +97,12 @@ func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request
 			})
 		}
 
+		if sortQuery == "desc" {
+			sort.Slice(respData, func(i, j int) bool {
+				return respData[i].CreatedAt.After(respData[j].CreatedAt)
+			})
+		}
+
 		respondWithJSON(w, http.StatusOK, respData)
 		return
 	}
@@ -112,6 +120,11 @@ func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request
 			UpdatedAt: v.UpdatedAt,
 			Body:      v.Body,
 			UserID:    v.UserID,
+		})
+	}
+	if sortQuery == "desc" {
+		sort.Slice(respData, func(i, j int) bool {
+			return respData[i].CreatedAt.After(respData[j].CreatedAt)
 		})
 	}
 
