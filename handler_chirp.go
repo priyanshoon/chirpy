@@ -70,6 +70,34 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 }
 
 func (cfg *apiConfig) handlerGetAllChirps(w http.ResponseWriter, r *http.Request) {
+	auther_id := r.URL.Query().Get("author_id")
+	if auther_id != "" {
+		userId, err := uuid.Parse(auther_id)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "cannot parse the auther_id", err)
+			return
+		}
+
+		chirps, err := cfg.db.GetAllChirpsByUserID(r.Context(), userId)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "cannot fetch the chirps of given author_id", err)
+			return
+		}
+
+		respData := []Chirp{}
+		for _, v := range chirps {
+			respData = append(respData, Chirp{
+				ID:        v.ID,
+				CreatedAt: v.CreatedAt,
+				UpdatedAt: v.UpdatedAt,
+				Body:      v.Body,
+				UserID:    v.UserID,
+			})
+		}
+
+		respondWithJSON(w, http.StatusOK, respData)
+		return
+	}
 	chirps, err := cfg.db.GetAllChirps(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "cannot get the chirps", err)
