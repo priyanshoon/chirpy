@@ -66,6 +66,9 @@ func main() {
 	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefersh)
 	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
 
+	// webhooks shit
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerPolka)
+
 	// this 2 should stay in for local test and development
 	mux.HandleFunc("GET /admin/metrics", apiCfg.hitHandler)
 	mux.HandleFunc("POST /admin/reset", apiCfg.resetHandler)
