@@ -18,6 +18,7 @@ type apiConfig struct {
 	platform       string
 	fileserverHits atomic.Int32
 	jwtSecret      string
+	polkaKey       string
 }
 
 func main() {
@@ -36,6 +37,11 @@ func main() {
 		log.Fatal("JWT_SECRET must be set")
 	}
 
+	polkaKey := os.Getenv("POLKA_KEY")
+	if polkaKey == "" {
+		log.Fatal("POLKA_KEY must be set")
+	}
+
 	dbURL := os.Getenv("DB_URL")
 	db, err := sql.Open("postgres", dbURL)
 	dbQueries := database.New(db)
@@ -45,6 +51,7 @@ func main() {
 		platform:       platform,
 		fileserverHits: atomic.Int32{},
 		jwtSecret:      jwtSecret,
+		polkaKey:       polkaKey,
 	}
 	mux := http.NewServeMux()
 
@@ -54,6 +61,7 @@ func main() {
 	// user related shit
 	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUser)
 	mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUser)
+	mux.HandleFunc("POST /api/login", apiCfg.handlerLoginUser)
 
 	// chirps related shit
 	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)
@@ -62,7 +70,6 @@ func main() {
 	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.handlerDeleteChirpByID)
 
 	// authentication handlers shit
-	mux.HandleFunc("POST /api/login", apiCfg.handlerLoginUser)
 	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefersh)
 	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
 
