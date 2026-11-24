@@ -13,18 +13,13 @@ func (cfg *apiConfig) handlerRefersh(w http.ResponseWriter, r *http.Request) {
 	type response struct {
 		Token string `json:"token"`
 	}
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		respondWithError(w, http.StatusUnauthorized, "auth header is missing", errors.New("auth header is missing"))
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "cannot get jwt", err)
 		return
 	}
 
-	if !strings.HasPrefix(authHeader, "Bearer ") {
-		respondWithError(w, http.StatusBadRequest, "auth header is invalid", errors.New("auth header is invalid"))
-		return
-	}
-
-	token := strings.TrimPrefix(authHeader, "Bearer ")
 	user, err := cfg.db.GetUserFromRefreshToken(r.Context(), token)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "something went wrong", err)
@@ -58,7 +53,8 @@ func (cfg *apiConfig) handlerRevoke(w http.ResponseWriter, r *http.Request) {
 	err := cfg.db.RevokeRefreshToken(r.Context(), token)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't revoke session", err)
+		return
 	}
 
-	respondWithJSON(w, http.StatusNoContent, nil)
+	w.WriteHeader(http.StatusNoContent)
 }

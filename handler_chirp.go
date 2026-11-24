@@ -113,6 +113,46 @@ func (cfg *apiConfig) handlerGetChirpByID(w http.ResponseWriter, r *http.Request
 	})
 }
 
+func (cfg *apiConfig) handlerDeleteChirpByID(w http.ResponseWriter, r *http.Request) {
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "cannot find jwt", err)
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.jwtSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "authentication token is invalid", err)
+		return
+	}
+
+	param := r.PathValue("chirpID")
+	chirpId, err := uuid.Parse(param)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid id", err)
+		return
+	}
+
+	chirp, err := cfg.db.GetChirpByID(r.Context(), chirpId)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "chirp does not exist", err)
+		return
+	}
+
+	if chirp.UserID != userID {
+		respondWithError(w, http.StatusForbidden, "you are not authorized to make this request",
+			errors.New("different user id"))
+		return
+	}
+
+	err = cfg.db.DeleteChirpByID(r.Context(), chirpId)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "chirp doesn't exist", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func validateChirp(body string) (string, error) {
 	const maxChirpLength = 140
 	if len(body) > maxChirpLength {

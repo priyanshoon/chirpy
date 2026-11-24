@@ -3,9 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
